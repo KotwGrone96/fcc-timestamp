@@ -24,9 +24,9 @@ app.get('/api/:date', (req, res) => {
   const dateParam = req.params.date;
   const dateType = isNaN(Number(dateParam));
   if (dateType) {
-    console.log('No es un número', dateParam);
     const regExpDate = new RegExp(/^\d{1,4}\-\d{1,2}\-\d{1,2}$/);
-    if (!regExpDate) {
+    const dateTest = regExpDate.test(dateParam);
+    if (!dateTest) {
       res.json({ error: 'Invalid Date' });
       return;
     }
