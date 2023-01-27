@@ -1,32 +1,45 @@
-// index.js
-// where your node app starts
+const express = require('express');
+const cors = require('cors');
+const app = express();
+const port = process.env.PORT || 3000;
 
-// init project
-var express = require('express');
-var app = express();
+app.use(cors({ optionsSuccessStatus: 200 }));
 
-// enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
-// so that your API is remotely testable by FCC 
-var cors = require('cors');
-app.use(cors({optionsSuccessStatus: 200}));  // some legacy browsers choke on 204
+app.use(express.static(`${__dirname}/public`));
+app.use(express.static(`${__dirname}/views`));
 
-// http://expressjs.com/en/starter/static-files.html
-app.use(express.static('public'));
-
-// http://expressjs.com/en/starter/basic-routing.html
-app.get("/", function (req, res) {
-  res.sendFile(__dirname + '/views/index.html');
+app.get('/', (req, res) => {
+  app.render('index');
 });
 
-
-// your first API endpoint... 
-app.get("/api/hello", function (req, res) {
-  res.json({greeting: 'hello API'});
+app.get('/api', (req, res) => {
+  const date = new Date();
+  const unix = Date.parse(date);
+  const utc = date.toUTCString();
+  const responseDate = { unix, utc };
+  res.json(responseDate);
 });
 
-
-
-// listen for requests :)
-var listener = app.listen(process.env.PORT, function () {
-  console.log('Your app is listening on port ' + listener.address().port);
+app.get('/api/:date', (req, res) => {
+  const dateParam = req.params.date;
+  const dateType = isNaN(Number(dateParam));
+  if (dateType) {
+    console.log('No es un número', dateParam);
+    const regExpDate = new RegExp(/^\d{1,4}\-\d{1,2}\-\d{1,2}$/);
+    if (!regExpDate) {
+      res.json({ error: 'Invalid Date' });
+      return;
+    }
+    const utc = new Date(dateParam).toUTCString();
+    const unix = Date.parse(new Date(dateParam));
+    const responseDate = { unix, utc };
+    res.json(responseDate);
+  } else {
+    const unix = Number(dateParam);
+    const utc = new Date(unix).toUTCString();
+    const responseDate = { unix, utc };
+    res.json(responseDate);
+  }
 });
+
+app.listen(port, () => console.log(`Server is runing in http://localhost:${port}`));
